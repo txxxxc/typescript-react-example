@@ -1,52 +1,49 @@
-import React, { useState, useCallback } from 'react';
+import React, { useReducer, useMemo, useCallback } from 'react';
+import { reducer, initialState } from './reducer';
+import { increment, decrement } from './actionCreators';
 
 type Props = {
-  clickedX: number;
-  clickedY: number;
-  handleClick: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  countLabel: string;
+  onClickIncrement: () => void;
+  onClickDecrement: () => void;
 };
 
-const Component: React.FC<Props> = props => (
-  <div>
-    <div
-      style={{ width: 100, height: 100, background: '#ccf' }}
-      onClick={props.handleClick}
-    />
-    <p
-      style={{ width: 100, height: 100, background: '#fcc' }}
-      onClick={props.handleClick}
-    />
-    <p>X: {props.clickedX}</p>
-    <p>Y: {props.clickedY}</p>
-  </div>
-);
+const Component: React.FC<Props> = props => {
+  return (
+    <>
+      Count: {props.countLabel}
+      <button onClick={props.onClickIncrement}>+</button>
+      <button onClick={props.onClickDecrement}>-</button>
+    </>
+  );
+};
 
 const Container: React.FC = () => {
-  const [state, update] = useState({
-    clickedX: 0,
-    clickedY: 0
-  });
-  const handleClick = useCallback(
-    (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
-      event.persist();
-      const { top, left } = event.currentTarget.getBoundingClientRect();
-      update(prev => ({
-        ...prev,
-        clickedX: event.clientX - left,
-        clickedY: event.clientY - top
-      }));
-    },
-    []
-  );
+  const [state, dispatch] = useReducer(reducer, initialState({ count: 0 }));
+  const countLabel = useMemo(() => `${state.count} ${state.unit}`, [state]);
+  const onClickIncrement = useCallback(() => dispatch(increment()), []);
+  const onClickDecrement = useCallback(() => dispatch(decrement()), []);
   return (
     <Component
-      clickedX={state.clickedX}
-      clickedY={state.clickedY}
-      handleClick={handleClick}
+      countLabel={countLabel}
+      onClickIncrement={onClickIncrement}
+      onClickDecrement={onClickDecrement}
     />
   );
 };
-
 export default Container;
 
-//children ファクトリ関数
+//children ファクトリ関数 useRef
+
+//   const ref = useRef<null | HTMLDivElement>(null);
+//   useEffect(() => {
+//     if (ref.current === null) return;
+//     const size = ref.current.getBoundingClientRect();
+//     console.log(size);
+//   });
+//   return (
+//     <div>
+//       <div ref={ref} style={{ width: 100, height: 1000 }} />
+//     </div>
+//   );
+// };
